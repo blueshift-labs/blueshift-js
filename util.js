@@ -31,8 +31,15 @@ function setCookie(c_name, value, expireDays) {
 }
 
 function sendRequest(request) {
-  const img = new Image(1, 1);
-  img.src = request;
+  if (isBrowser()) {
+    const img = new Image(1, 1);
+    img.src = request;
+  } else {
+    fetch(request, {
+      method: 'GET',
+      mode: 'no-cors',
+    });
+  }
 }
 
 function hasIdentifier(cookie, eventObj) {
