@@ -1,6 +1,6 @@
 {
   "name": "blueshift-js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Event tracking library for the Blueshift marketing platform.",
   "main": "dist/main.js",
   "scripts": {
@@ -11,7 +11,12 @@
     "type": "git",
     "url": "https://github.com/blueshift-labs/blueshift-js.git"
   },
-  "keywords": ["event", "tracking", "blueshift", "js"],
+  "keywords": [
+    "event",
+    "tracking",
+    "blueshift",
+    "js"
+  ],
   "author": "Michael Ruescher <michael@getblueshift.com>",
   "license": "MIT",
   "devDependencies": {
