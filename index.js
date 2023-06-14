@@ -1,6 +1,9 @@
 // index.js
 
+const { merge } = require('webpack-merge');
 const config = require('./config.js');
+let identifierParams = {};
+
 const {
   guid,
   getCookie,
@@ -18,19 +21,14 @@ function track(eventName, obj = {}) {
   if (!config.apiKey) {
     throw new Error('You must initialize the module with an API key before tracking an event.');
   }
-  // manage cookie
-  let cookie = getCookie('_bs');
-  if (cookie === undefined) {
-    cookie = guid();
-    setCookie('_bs', cookie, 365);
-  }
+  // merge identifier params with event params
+  obj = { ...identifierParams, ...obj };
   // generate request string
   const requestUrl = generateRequestUrl(
     config.protocol,
     config.hostname,
     config.apiKey,
     eventName,
-    cookie,
     obj,
   )
   sendRequest(requestUrl);
@@ -39,6 +37,19 @@ function track(eventName, obj = {}) {
 function identify(userProperties = {}) {
   if (!config.apiKey) {
     throw new Error('You must initialize the module with an API key before identifying a user.');
+  }
+  // remember only the most important identifier
+  identifierParams = {};
+  if (userProperties.email) {
+    identifierParams.email = userProperties.email;
+  } else if (userProperties.customer_id) {
+    identifierParams.customer_id = userProperties.customer_id;
+  } else if (userProperties.device_id) {
+    identifierParams.device_id = userProperties.device_id;
+  } else if (userProperties.phone_number) {
+    identifierParams.phone_number = userProperties.phone_number;
+  } else if (userProperties.user_uuid) {
+    identifierParams.user_uuid = userProperties.user_uuid;
   }
   track("identify", { ...userProperties });
 }

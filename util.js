@@ -9,6 +9,10 @@ function guid() {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
 
+function isBrowser() {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
+
 function getCookie(c_name) {
   const cookieArray = document.cookie.split(';').map(cookie => cookie.trim());
   for (const cookieString of cookieArray) {
@@ -31,11 +35,34 @@ function sendRequest(request) {
   img.src = request;
 }
 
-function generateRequestUrl(protocol, hostname, apiKey, event, cookie, obj) {
+function hasIdentifier(cookie, eventObj) {
+  if (cookie || eventObj.email || eventObj.customer_id || eventObj.device_id || eventObj.phone_number || eventObj.user_uuid) {
+    return true
+  }
+  return false
+}
+
+function generateRequestUrl(protocol, hostname, apiKey, event, obj) {
   const unix = Math.round(new Date() / 1000);
   const randNum = Math.floor((Math.random() * 1000000) + 1);
-  const ref = document.referrer;
-  let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(ref)}&z=${randNum}&k=${cookie}&u=${encodeURIComponent(window.location.href)}`;
+  const ref = isBrowser() ? document.referrer : '';
+  // manage cookie
+  let cookie = null;
+  let cookieString = '';
+  if (isBrowser()) {
+    cookie = getCookie('_bs');
+    if (cookie === undefined) {
+      cookie = guid();
+      setCookie('_bs', cookie, 365);
+    }
+    cookieString = `&k=${cookie}`
+  }
+  // make sure the request has an identifier
+  if (!hasIdentifier(cookie, obj)) {
+    throw new Error(`Request for '${event}' event is missing an identifier`);
+  }
+  // generate url
+  let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(ref)}&z=${randNum}${cookieString}&u=${encodeURIComponent(isBrowser() ? window.location.href : '')}`;
   for (const key in obj) {
     const v = obj[key];
     if (typeof v === "object") {
@@ -53,4 +80,5 @@ module.exports = {
   setCookie,
   sendRequest,
   generateRequestUrl,
+  isBrowser,
 };
