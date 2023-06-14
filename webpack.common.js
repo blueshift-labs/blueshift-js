@@ -1,3 +1,5 @@
+// webpack.common.js
+
 const path = require('path');
 
 module.exports = {
@@ -7,7 +9,6 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     library: 'blueshift-js',
     libraryTarget: 'umd',
-    globalObject: 'this',
+    globalObject: 'this'
   },
-  target: 'node',
 };
