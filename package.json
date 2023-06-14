@@ -1,6 +1,6 @@
 {
   "name": "blueshift-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Event tracking library for the Blueshift marketing platform.",
   "main": "dist/main.js",
   "scripts": {
