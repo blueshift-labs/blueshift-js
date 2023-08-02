@@ -1,6 +1,6 @@
 # Blueshift-JS
 
-Blueshift-JS is a modernized version of the original blueshift.js event tracking client. It is to be published as a public npm module for Blueshift customers to import and integrate into their builds. It is designed to be compatible in node and browser contexts, as well as cross platform build systems like Expo.
+Blueshift-JS is a modernized, minimimalistic version of the original blueshift.js event tracking client for Blueshift customers to import and integrate into their builds. It is designed to be compatible in node and browser contexts, as well as cross platform build systems like Expo.
 
 ## Getting Started
 
@@ -17,7 +17,7 @@ To build the module for production, run `npm run build`
 
 This command will create a dist directory with a production-ready main.js file.
 
-## Loading (This won't work until is published)
+## Loading
 
 You can load the library in two ways:
 
