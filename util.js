@@ -47,7 +47,20 @@ function hasIdentifier(cookie, eventObj) {
 function generateRequestUrl(protocol, hostname, apiKey, event, obj) {
   const unix = Math.round(new Date() / 1000);
   const randNum = Math.floor((Math.random() * 1000000) + 1);
-  const ref = isBrowser() ? document.referrer : '';
+  const eventObjKeys = Object.keys(obj);
+  const remainingAttrs = {
+    ...obj,
+  };
+
+  // manage referrer
+  let ref = null;
+  if (isBrowser()) {
+    ref = document.referrer || '';
+  } else if (eventObjKeys.includes('referrer')) {
+    ref = obj.referrer || '';
+    delete remainingAttrs.referrer;
+  }
+
   // manage cookie
   let cookie = null;
   let cookieString = '';
@@ -57,17 +70,31 @@ function generateRequestUrl(protocol, hostname, apiKey, event, obj) {
       cookie = guid();
       setCookie('_bs', cookie, 365);
     }
-    cookieString = `&k=${cookie}`
+    cookieString = `&k=${cookie}`;
+  } else if (eventObjKeys.includes('cookie')) {
+    cookie = obj.cookie;
+    cookieString = `&k=${cookie}`;
+    delete remainingAttrs.cookie;
   }
+
   // make sure the request has an identifier
   if (!hasIdentifier(cookie, obj)) {
     throw new Error(`Request for '${event}' event is missing an identifier`);
   }
   // generate url
-  let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(ref)}&z=${randNum}${cookieString}&u=${encodeURIComponent(isBrowser() ? window.location.href : '')}`;
-  for (const key in obj) {
-    const v = obj[key];
-    if (typeof v === "object") {
+  let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(ref)}&z=${randNum}${cookieString}`;
+
+  // manage url parameter
+  if (isBrowser()) {
+    requestString += `&u=${encodeURIComponent(window.location.href || '')}`;
+  } else if (eventObjKeys.includes('url')) {
+    requestString += `&u=${encodeURIComponent(obj.url)}`;
+    delete remainingAttrs.url;
+  }
+
+  for (const key in remainingAttrs) {
+    const v = remainingAttrs[key];
+    if (typeof v === 'object') {
       requestString += `&${key}_json=${encodeURIComponent(JSON.stringify(v))}`;
     } else {
       requestString += `&${key}=${encodeURIComponent(v)}`;
