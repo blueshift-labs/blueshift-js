@@ -44,63 +44,94 @@ function hasIdentifier(cookie, eventObj) {
   return false
 }
 
+
 function generateRequestUrl(protocol, hostname, apiKey, event, obj) {
   const unix = Math.round(new Date() / 1000);
-  const randNum = Math.floor((Math.random() * 1000000) + 1);
-  const eventObjKeys = Object.keys(obj);
-  const remainingAttrs = {
-    ...obj,
-  };
+  const randNum = Math.floor(Math.random() * 1000000 + 1);
 
-  // manage referrer
-  let ref = null;
-  if (isBrowser()) {
-    ref = document.referrer || '';
-  } else if (eventObjKeys.includes('referrer')) {
-    ref = obj.referrer || '';
-    delete remainingAttrs.referrer;
+  // Validate input
+  if (!protocol || !hostname || !apiKey || !event) {
+    throw new Error('Missing required parameters.');
   }
 
-  // manage cookie
-  let cookie = null;
-  let cookieString = '';
-  if (isBrowser()) {
-    cookie = getCookie('_bs');
+  // Strategy for browser environment
+  function generateBrowserRequest() {
+    const ref = document.referrer || '';
+    let cookie = getCookie('_bs');
+    let cookieString = '';
+
     if (cookie === undefined) {
       cookie = guid();
       setCookie('_bs', cookie, 365);
     }
     cookieString = `&k=${cookie}`;
-  } else if (eventObjKeys.includes('cookie')) {
-    cookie = obj.cookie;
-    cookieString = `&k=${cookie}`;
-    delete remainingAttrs.cookie;
-  }
 
-  // make sure the request has an identifier
-  if (!hasIdentifier(cookie, obj)) {
-    throw new Error(`Request for '${event}' event is missing an identifier`);
-  }
-  // generate url
-  let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(ref)}&z=${randNum}${cookieString}`;
-
-  // manage url parameter
-  if (isBrowser()) {
-    requestString += `&u=${encodeURIComponent(window.location.href || '')}`;
-  } else if (eventObjKeys.includes('url')) {
-    requestString += `&u=${encodeURIComponent(obj.url)}`;
-    delete remainingAttrs.url;
-  }
-
-  for (const key in remainingAttrs) {
-    const v = remainingAttrs[key];
-    if (typeof v === 'object') {
-      requestString += `&${key}_json=${encodeURIComponent(JSON.stringify(v))}`;
-    } else {
-      requestString += `&${key}=${encodeURIComponent(v)}`;
+    if (!hasIdentifier(cookie, obj)) {
+      throw new Error(`Request for '${event}' event is missing an identifier`);
     }
+
+    let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(
+      ref
+    )}&z=${randNum}${cookieString}&u=${encodeURIComponent(
+      window.location.href
+    )}`;
+    requestString = appendObjectParams(requestString, obj);
+    return requestString;
   }
-  return requestString
+
+  // Strategy for non-browser environment
+  function generateNonBrowserRequest() {
+    debugger;
+    const eventObjKeys = Object.keys(obj);
+    const remainingAttrs = { ...obj };
+
+    let cookie = null;
+    let cookieStr = '';
+    if (eventObjKeys.includes('cookie')) {
+      cookie = remainingAttrs.cookie
+      cookieStr = `&k=${remainingAttrs.cookie}`;
+      delete remainingAttrs.cookie;
+    }
+
+    let ref = '';
+    if (eventObjKeys.includes('referrer')) {
+      ref = remainingAttrs.referrer || '';
+      delete remainingAttrs.referrer;
+    }
+
+    if (!hasIdentifier(cookieStr, remainingAttrs)) {
+      throw new Error(`Request for '${event}' event is missing an identifier`);
+    }
+
+    let requestString = `${protocol}://${hostname}/unity.gif?x=${apiKey}&t=${unix}&e=${event}&r=${encodeURIComponent(ref)}&z=${randNum}${cookieStr}`;
+
+    if (eventObjKeys.includes('url')) {
+      requestString += `&u=${encodeURIComponent(remainingAttrs.url)}`;
+      delete remainingAttrs.url;
+    }
+
+    requestString = appendObjectParams(requestString, remainingAttrs);
+
+    return requestString;
+  }
+
+  // Helper to append object parameters
+  function appendObjectParams(requestString, obj) {
+    for (const key in obj) {
+      const v = obj[key];
+      if (typeof v === 'object') {
+        requestString += `&${key}_json=${encodeURIComponent(
+          JSON.stringify(v)
+        )}`;
+      } else {
+        requestString += `&${key}=${encodeURIComponent(v)}`;
+      }
+    }
+    return requestString;
+  }
+
+  // Decide based on environment
+  return isBrowser() ? generateBrowserRequest() : generateNonBrowserRequest();
 }
 
 module.exports = {
