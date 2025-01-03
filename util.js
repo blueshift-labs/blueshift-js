@@ -81,7 +81,6 @@ function generateRequestUrl(protocol, hostname, apiKey, event, obj) {
 
   // Strategy for non-browser environment
   function generateNonBrowserRequest() {
-    debugger;
     const eventObjKeys = Object.keys(obj);
     const remainingAttrs = { ...obj };
 
