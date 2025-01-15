@@ -64,8 +64,52 @@ describe('generateRequestUrl for Browser', () => {
   });
 
   afterEach(() => {
-    // restore the spy created with spyOn
     jest.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    // Set document and window to undefined
+    global.document = undefined;
+    global.window = undefined;
+  });
+
+  it('should throw error if required parameters are missing', () => {
+    expect(() =>
+      generateRequestUrl(
+        null,
+        TEST_HOSTNAME,
+        TEST_API_KEY,
+        TEST_EVENT,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+    expect(() =>
+      generateRequestUrl(
+        'https',
+        null,
+        TEST_API_KEY,
+        TEST_EVENT,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+    expect(() =>
+      generateRequestUrl(
+        'https',
+        TEST_HOSTNAME,
+        null,
+        TEST_EVENT,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+    expect(() =>
+      generateRequestUrl(
+        'https',
+        TEST_HOSTNAME,
+        TEST_API_KEY,
+        null,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
   });
 
   it('should generate request URL for browser environment', () => {
@@ -101,5 +145,73 @@ describe('generateRequestUrl for Browser', () => {
     expect(url).toContain('&k=');
     expect(url).toContain('&email=test%40test.com');
     expect(url).toContain('&prop1=value1');
+  });
+});
+
+describe('generateRequestUrl for Non-Browser', () => {
+  const TEST_API_KEY = 'test-api-key';
+  const TEST_HOSTNAME = 'api.test.com';
+  const TEST_EVENT = 'test_event';
+  const TEST_PROPERTIES = {
+    email: 'test@test.com',
+    prop1: 'value1',
+    cookie: 'test-cookie',
+    referrer: 'test-referrer',
+  };
+
+  it('should throw error if required parameters are missing', () => {
+    expect(() =>
+      generateRequestUrl(
+        null,
+        TEST_HOSTNAME,
+        TEST_API_KEY,
+        TEST_EVENT,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+    expect(() =>
+      generateRequestUrl(
+        'https',
+        null,
+        TEST_API_KEY,
+        TEST_EVENT,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+    expect(() =>
+      generateRequestUrl(
+        'https',
+        TEST_HOSTNAME,
+        null,
+        TEST_EVENT,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+    expect(() =>
+      generateRequestUrl(
+        'https',
+        TEST_HOSTNAME,
+        TEST_API_KEY,
+        null,
+        TEST_PROPERTIES
+      )
+    ).toThrow('Missing required parameters.');
+  });
+
+  it('should set cookie and generate url for non-browser environment', () => {
+    const url = generateRequestUrl(
+      'https',
+      TEST_HOSTNAME,
+      TEST_API_KEY,
+      TEST_EVENT,
+      TEST_PROPERTIES
+    );
+
+    expect(url).toContain('&prop1=value1');
+    expect(url).toContain('https://api.test.com/unity.gif?x=test-api-key');
+    expect(url).toContain('&e=test_event');
+    expect(url).toContain('&k=test-cookie');
+    expect(url).toContain('&email=test%40test.com');
+    expect(url).toContain('&r=test-referrer');
   });
 });

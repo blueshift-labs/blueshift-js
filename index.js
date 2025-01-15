@@ -1,6 +1,4 @@
 // index.js
-
-const { merge } = require('webpack-merge');
 const config = require('./config.js');
 let identifierParams = {};
 
