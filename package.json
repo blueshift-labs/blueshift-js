@@ -1,7 +1,10 @@
 {
-  "name": "blueshift-js",
+  "name": "@blueshift_ai/blueshift-js",
   "version": "0.1.0",
   "description": "Event tracking library for the Blueshift marketing platform.",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/main.js",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
