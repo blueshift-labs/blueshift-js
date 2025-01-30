@@ -1,6 +1,6 @@
 {
   "name": "@blueshift_ai/blueshift-js",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "Event tracking library for the Blueshift marketing platform.",
   "publishConfig": {
     "access": "public"
