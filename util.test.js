@@ -4,6 +4,10 @@ const {
   generateRequestUrl,
 } = require('./util');
 
+const cookieUUID = '935430ac-a189-0cfb-f7c4-89b71e94b539';
+
+const browserCookie = `_bs=${cookieUUID}; path=/; domain=.test.com; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict; SECURED`;
+
 jest.mock('./util', () => {
   const originalModule = jest.requireActual('./util');
   return {
@@ -23,7 +27,7 @@ describe('getCookie', () => {
   beforeAll(() => {
     Object.defineProperty(global, 'document', {
       value: {
-        cookie: '_bs=test-cookie',
+        cookie: browserCookie,
       },
       writable: true,
     });
@@ -31,7 +35,7 @@ describe('getCookie', () => {
 
   it('should return the value of the cookie', () => {
     const cookieValue = getCookie('_bs');
-    expect(cookieValue).toBe('test-cookie');
+    expect(cookieValue).toBe(cookieUUID);
   });
 });
 
@@ -44,7 +48,7 @@ describe('generateRequestUrl for Browser', () => {
   beforeAll(() => {
     Object.defineProperty(global, 'document', {
       value: {
-        cookie: '_bs=test-cookie',
+        cookie: browserCookie,
         referrer: 'test-referrer',
       },
       writable: true,
@@ -117,7 +121,7 @@ describe('generateRequestUrl for Browser', () => {
 
     expect(url).toContain('https://api.test.com/unity.gif?x=test-api-key');
     expect(url).toContain('&e=test_event');
-    expect(url).toContain('&k=test-cookie');
+    expect(url).toContain(`&k=${cookieUUID}`);
     expect(url).toContain('&email=test%40test.com');
     expect(url).toContain('&prop1=value1');
   });
@@ -155,7 +159,7 @@ describe('generateRequestUrl for Non-Browser', () => {
   const TEST_PROPERTIES = {
     email: 'test@test.com',
     prop1: 'value1',
-    cookie: 'test-cookie',
+    cookie: cookieUUID,
     referrer: 'test-referrer',
   };
 
@@ -210,7 +214,7 @@ describe('generateRequestUrl for Non-Browser', () => {
     expect(url).toContain('&prop1=value1');
     expect(url).toContain('https://api.test.com/unity.gif?x=test-api-key');
     expect(url).toContain('&e=test_event');
-    expect(url).toContain('&k=test-cookie');
+    expect(url).toContain(`&k=${cookieUUID}`);
     expect(url).toContain('&email=test%40test.com');
     expect(url).toContain('&r=test-referrer');
   });
