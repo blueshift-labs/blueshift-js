@@ -26,7 +26,7 @@ function getCookie(c_name) {
 function setCookie(c_name, value, expireDays) {
   const expiresDate = new Date();
   expiresDate.setDate(expiresDate.getDate() + expireDays);
-  const c_value = `${encodeURIComponent(value)}${(expireDays == null) ? '' : `;expires=${expiresDate.toUTCString()}`};path=/;SameSite=Strict;SECURED`;
+  const c_value = `${encodeURIComponent(value)}${(expireDays == null) ? '' : `;expires=${expiresDate.toUTCString()}`};path=/;SameSite=Strict;Secure`;
   document.cookie = `${c_name}=${c_value}`;
 }
 

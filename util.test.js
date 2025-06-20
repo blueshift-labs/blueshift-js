@@ -1,20 +1,12 @@
 const {
   guid,
   getCookie,
+  setCookie,
   generateRequestUrl,
 } = require('./util');
 
 const cookieUUID = '935430ac-a189-0cfb-f7c4-89b71e94b539';
-
-const browserCookie = `_bs=${cookieUUID}; path=/; domain=.test.com; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict; SECURED`;
-
-jest.mock('./util', () => {
-  const originalModule = jest.requireActual('./util');
-  return {
-    ...originalModule,
-    isBrowser: jest.fn(),
-  };
-});
+const browserCookie = `_bs=${cookieUUID}; path=/; domain=.test.com; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict; Secure`;
 
 describe('guid', () => {
   it('should return a string with 36 characters', () => {
@@ -33,9 +25,41 @@ describe('getCookie', () => {
     });
   });
 
+  afterAll(() => {
+    delete global.document;
+  });
+
   it('should return the value of the cookie', () => {
     const cookieValue = getCookie('_bs');
     expect(cookieValue).toBe(cookieUUID);
+  });
+});
+
+describe('setCookie', () => {
+  beforeAll(() => {
+    Object.defineProperty(global, 'document', {
+      value: {
+        cookie: ''
+      },
+      writable: true,
+    });
+  });
+
+  afterAll(() => {
+    delete global.document;
+  });
+
+  it('should set cookie with Secure flag in browser environment', () => {
+    const cookieName = '_bs';
+    const cookieValue = cookieUUID;
+    const expireDays = 30;
+
+    setCookie(cookieName, cookieValue, expireDays);
+
+    expect(global.document.cookie).toContain(`${cookieName}=${encodeURIComponent(cookieValue)}`);
+    expect(global.document.cookie).toContain(';path=/');
+    expect(global.document.cookie).toContain(';SameSite=Strict');
+    expect(global.document.cookie).toContain(';Secure');
   });
 });
 
@@ -63,18 +87,9 @@ describe('generateRequestUrl for Browser', () => {
     });
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   afterAll(() => {
-    // Set document and window to undefined
-    global.document = undefined;
-    global.window = undefined;
+    delete global.document;
+    delete global.window;
   });
 
   it('should throw error if required parameters are missing', () => {
@@ -162,6 +177,12 @@ describe('generateRequestUrl for Non-Browser', () => {
     cookie: cookieUUID,
     referrer: 'test-referrer',
   };
+
+  beforeAll(() => {
+    // Ensure non-browser environment by removing window and document
+    global.window = undefined;
+    global.document = undefined;
+  });
 
   it('should throw error if required parameters are missing', () => {
     expect(() =>
